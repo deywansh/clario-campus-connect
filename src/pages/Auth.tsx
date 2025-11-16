@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,21 +6,114 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GraduationCap } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { loginSchema, signupSchema } from "@/lib/auth-schema";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
 
-  const handleAuth = (e: React.FormEvent, type: "login" | "signup") => {
+  // Redirect if already logged in
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/home", { replace: true });
+      }
+    });
+  }, [navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate auth - in production, this will use Lovable Cloud
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success(type === "login" ? "Welcome back!" : "Account created successfully!");
+    try {
+      // Validate inputs
+      const validatedData = loginSchema.parse({
+        email: loginEmail,
+        password: loginPassword,
+      });
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: validatedData.email,
+        password: validatedData.password,
+      });
+
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Invalid email or password");
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+
+      toast.success("Welcome back!");
       navigate("/home");
-    }, 1500);
+    } catch (err: any) {
+      if (err.errors) {
+        // Zod validation errors
+        err.errors.forEach((error: any) => {
+          toast.error(error.message);
+        });
+      } else {
+        toast.error("An error occurred during login");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Validate inputs
+      const validatedData = signupSchema.parse({
+        name: signupName,
+        email: signupEmail,
+        password: signupPassword,
+      });
+
+      const { error } = await supabase.auth.signUp({
+        email: validatedData.email,
+        password: validatedData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            full_name: validatedData.name,
+          },
+        },
+      });
+
+      if (error) {
+        if (error.message.includes("already registered")) {
+          toast.error("This email is already registered. Please login instead.");
+        } else {
+          toast.error(error.message);
+        }
+        return;
+      }
+
+      toast.success("Account created successfully!");
+      navigate("/home");
+    } catch (err: any) {
+      if (err.errors) {
+        // Zod validation errors
+        err.errors.forEach((error: any) => {
+          toast.error(error.message);
+        });
+      } else {
+        toast.error("An error occurred during signup");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -47,13 +140,15 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="login" className="space-y-4 mt-6">
-              <form onSubmit={(e) => handleAuth(e, "login")} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">College Email</Label>
                   <Input
                     id="login-email"
                     type="email"
                     placeholder="you@poornima.edu.in"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
                     required
                     className="bg-secondary/50 border-border/50"
                   />
@@ -64,6 +159,8 @@ const Auth = () => {
                     id="login-password"
                     type="password"
                     placeholder="••••••••"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
                     required
                     className="bg-secondary/50 border-border/50"
                   />
@@ -79,13 +176,15 @@ const Auth = () => {
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4 mt-6">
-              <form onSubmit={(e) => handleAuth(e, "signup")} className="space-y-4">
+              <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Full Name</Label>
                   <Input
                     id="signup-name"
                     type="text"
                     placeholder="John Doe"
+                    value={signupName}
+                    onChange={(e) => setSignupName(e.target.value)}
                     required
                     className="bg-secondary/50 border-border/50"
                   />
@@ -96,6 +195,8 @@ const Auth = () => {
                     id="signup-email"
                     type="email"
                     placeholder="you@poornima.edu.in"
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
                     required
                     className="bg-secondary/50 border-border/50"
                   />
@@ -106,6 +207,8 @@ const Auth = () => {
                     id="signup-password"
                     type="password"
                     placeholder="••••••••"
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
                     required
                     className="bg-secondary/50 border-border/50"
                   />
