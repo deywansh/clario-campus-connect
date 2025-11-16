@@ -1,23 +1,33 @@
 import { Button } from "@/components/ui/button";
-import { User, Mail, BookOpen, Users, Settings, LogOut } from "lucide-react";
+import { User, Mail, Settings, LogOut, Loader2 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
+  const { profile, roles, loading } = useProfile();
 
-  const handleLogout = () => {
-    toast.success("Logged out successfully");
-    navigate("/auth");
+  const handleLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error("Failed to sign out");
+    } else {
+      toast.success("Logged out successfully");
+      navigate("/auth");
+    }
   };
 
-  const followedClubs = [
-    "Tech Club",
-    "Photography Society",
-    "Music Club",
-    "Drama Club",
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-20">
@@ -33,11 +43,22 @@ const Profile = () => {
         {/* Profile header */}
         <div className="glass-card rounded-2xl p-6 text-center space-y-4 glow-border">
           <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-            <User className="w-12 h-12 text-primary" />
+            {profile?.avatar_url ? (
+              <img 
+                src={profile.avatar_url} 
+                alt={profile.full_name} 
+                className="w-24 h-24 rounded-full object-cover" 
+              />
+            ) : (
+              <User className="w-12 h-12 text-primary" />
+            )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold">John Doe</h2>
-            <p className="text-muted-foreground">Computer Science - Year 3</p>
+            <h2 className="text-2xl font-bold">{profile?.full_name || "User"}</h2>
+            <p className="text-muted-foreground">
+              {roles.map(role => role.charAt(0).toUpperCase() + role.slice(1)).join(" • ")}
+            </p>
+            {profile?.bio && <p className="text-sm text-muted-foreground mt-2">{profile.bio}</p>}
           </div>
           <Button variant="outline" className="rounded-full border-primary/30 hover:bg-primary/10">
             Edit Profile
@@ -50,30 +71,12 @@ const Profile = () => {
           
           <div className="flex items-center gap-3 text-muted-foreground">
             <Mail className="w-5 h-5 text-primary" />
-            <span>john.doe@poornima.edu.in</span>
-          </div>
-          
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <BookOpen className="w-5 h-5 text-primary" />
-            <span>Section A</span>
+            <span>{user?.email || "No email"}</span>
           </div>
           
           <div className="flex items-center gap-3 text-muted-foreground">
             <User className="w-5 h-5 text-primary" />
-            <span>Student</span>
-          </div>
-        </div>
-
-        {/* Followed clubs */}
-        <div className="glass-card rounded-2xl p-6 space-y-4">
-          <h3 className="font-semibold text-lg mb-4">Followed Clubs</h3>
-          <div className="space-y-2">
-            {followedClubs.map((club) => (
-              <div key={club} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
-                <Users className="w-5 h-5 text-primary" />
-                <span>{club}</span>
-              </div>
-            ))}
+            <span>{roles.map(role => role.charAt(0).toUpperCase() + role.slice(1)).join(", ")}</span>
           </div>
         </div>
 
