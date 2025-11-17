@@ -8,43 +8,83 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 230 60% 8%;
-    --foreground: 190 100% 95%;
+    --background: 0 0% 98%;
+    --foreground: 220 13% 13%;
 
-    --card: 230 55% 12%;
-    --card-foreground: 190 100% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 13%;
 
-    --popover: 230 60% 10%;
-    --popover-foreground: 190 100% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 13%;
 
-    --primary: 190 100% 50%;
-    --primary-foreground: 230 60% 8%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 230 50% 15%;
-    --secondary-foreground: 190 100% 95%;
+    --secondary: 220 13% 95%;
+    --secondary-foreground: 220 13% 13%;
 
-    --muted: 230 45% 18%;
-    --muted-foreground: 190 30% 70%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 190 90% 60%;
-    --accent-foreground: 230 60% 8%;
+    --accent: 221 83% 53%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 190 100% 95%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 230 40% 20%;
-    --input: 230 40% 20%;
-    --ring: 190 100% 50%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
     /* Glassmorphism */
-    --glass-bg: 230 55% 12% / 0.7;
-    --glass-border: 190 80% 60% / 0.2;
+    --glass-bg: 0 0% 100% / 0.8;
+    --glass-border: 221 83% 53% / 0.1;
     
     /* Glow effects */
-    --glow-primary: 190 100% 50%;
-    --glow-accent: 190 90% 60%;
+    --glow-primary: 221 83% 53%;
+    --glow-accent: 221 83% 60%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --card: 224 71% 6%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 224 71% 6%;
+    --popover-foreground: 213 31% 91%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 47% 11%;
+    --secondary-foreground: 213 31% 91%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 221 83% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 213 31% 91%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
+
+    /* Glassmorphism */
+    --glass-bg: 224 71% 6% / 0.7;
+    --glass-border: 221 83% 53% / 0.2;
+    
+    /* Glow effects */
+    --glow-primary: 221 83% 53%;
+    --glow-accent: 221 83% 60%;
   }
 }
 
@@ -55,7 +95,6 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    background: linear-gradient(135deg, hsl(230 60% 8%) 0%, hsl(230 55% 10%) 100%);
     min-height: 100vh;
   }
 
