@@ -4,6 +4,7 @@ import { Users, Plus, Loader2 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useProfile } from "@/hooks/useProfile";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,7 +58,9 @@ const Home = () => {
               Hello, <span className="text-primary">{profile?.full_name || "Student"}</span> 👋
             </h1>
             {scrolled && <h2 className="text-xl font-semibold">Feed</h2>}
-            {canCreateAnnouncement && (
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              {canCreateAnnouncement && (
               <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                   <Button size="icon" variant="ghost" className="rounded-full">
@@ -94,7 +97,8 @@ const Home = () => {
                   </form>
                 </DialogContent>
               </Dialog>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
