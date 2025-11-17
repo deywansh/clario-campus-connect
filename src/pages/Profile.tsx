@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { User, Mail, Settings, LogOut, Loader2 } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import BottomNav from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -34,7 +35,10 @@ const Profile = () => {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="max-w-2xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">Profile</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Profile</h1>
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
