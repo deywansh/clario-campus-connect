@@ -1,4 +1,4 @@
-import { Home, Calendar, MessageCircle, User } from "lucide-react";
+import { Home, Calendar, MessageCircle, Users, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const BottomNav = () => {
@@ -6,6 +6,7 @@ const BottomNav = () => {
     { icon: Home, label: "Home", path: "/home" },
     { icon: Calendar, label: "Events", path: "/events" },
     { icon: MessageCircle, label: "Chats", path: "/chats" },
+    { icon: Users, label: "Clubs", path: "/clubs" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
