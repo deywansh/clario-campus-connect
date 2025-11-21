@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Chats from "./pages/Chats";
+import Clubs from "./pages/Clubs";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -47,6 +48,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Chats />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clubs"
+            element={
+              <ProtectedRoute>
+                <Clubs />
               </ProtectedRoute>
             }
           />
