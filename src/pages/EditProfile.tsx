@@ -8,12 +8,18 @@ import { ArrowLeft, Loader2, Camera } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ImageUploader from "@/components/ImageUploader";
 
 const EditProfile = () => {
   const navigate = useNavigate();
   const { profile, updateProfile } = useProfile();
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [bio, setBio] = useState(profile?.bio || "");
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "");
+  const [year, setYear] = useState(profile?.year?.toString() || "");
+  const [branch, setBranch] = useState(profile?.branch || "");
+  const [section, setSection] = useState(profile?.section || "");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -23,6 +29,10 @@ const EditProfile = () => {
     const { error } = await updateProfile({
       full_name: fullName,
       bio: bio || null,
+      avatar_url: avatarUrl || null,
+      year: year ? parseInt(year) : null,
+      branch: branch || null,
+      section: section || null,
     });
 
     if (error) {
@@ -61,20 +71,13 @@ const EditProfile = () => {
       <div className="max-w-2xl mx-auto px-4 py-6">
         <form onSubmit={handleSave} className="space-y-6">
           {/* Avatar */}
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-2xl font-bold text-primary-foreground">
-                {profile?.full_name?.charAt(0).toUpperCase() || "U"}
-              </div>
-              <Button
-                size="icon"
-                type="button"
-                className="absolute bottom-0 right-0 rounded-full w-8 h-8 bg-primary hover:bg-primary/90"
-              >
-                <Camera className="w-4 h-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">Click to change avatar</p>
+          <div className="space-y-2">
+            <Label>Profile Picture</Label>
+            <ImageUploader
+              bucket="avatars"
+              onUploadComplete={setAvatarUrl}
+              currentImage={avatarUrl}
+            />
           </div>
 
           {/* Full Name */}
@@ -99,6 +102,46 @@ const EditProfile = () => {
               placeholder="Tell us about yourself..."
               rows={4}
               className="rounded-2xl"
+            />
+          </div>
+
+          {/* Year */}
+          <div className="space-y-2">
+            <Label htmlFor="year">Year</Label>
+            <Select value={year} onValueChange={setYear}>
+              <SelectTrigger className="rounded-full">
+                <SelectValue placeholder="Select year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1st Year</SelectItem>
+                <SelectItem value="2">2nd Year</SelectItem>
+                <SelectItem value="3">3rd Year</SelectItem>
+                <SelectItem value="4">4th Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Branch */}
+          <div className="space-y-2">
+            <Label htmlFor="branch">Branch</Label>
+            <Input
+              id="branch"
+              value={branch}
+              onChange={(e) => setBranch(e.target.value)}
+              placeholder="e.g., CSE, ECE, ME"
+              className="rounded-full"
+            />
+          </div>
+
+          {/* Section */}
+          <div className="space-y-2">
+            <Label htmlFor="section">Section</Label>
+            <Input
+              id="section"
+              value={section}
+              onChange={(e) => setSection(e.target.value)}
+              placeholder="e.g., A, B, C"
+              className="rounded-full"
             />
           </div>
 

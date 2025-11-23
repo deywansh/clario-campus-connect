@@ -67,14 +67,16 @@ const Events = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {events.map((event, index) => (
+            {events.map((event) => (
               <div key={event.id} className="glass-card rounded-2xl overflow-hidden smooth-transition hover:glow-border">
-                {/* Event image/gradient */}
-                <div className={`h-32 bg-gradient-to-br ${
-                  index % 2 === 0 ? 'from-primary/20 to-accent/20' : 'from-accent/20 to-primary/20'
-                } flex items-center justify-center`}>
-                  <Calendar className="w-12 h-12 text-primary/50" />
-                </div>
+                {/* Event image/poster */}
+                {event.poster_url ? (
+                  <img src={event.poster_url} alt={event.title} className="w-full h-48 object-cover" />
+                ) : (
+                  <div className="h-48 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                    <Calendar className="w-12 h-12 text-primary/50" />
+                  </div>
+                )}
 
                 {/* Event details */}
                 <div className="p-4 space-y-3">

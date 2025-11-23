@@ -7,6 +7,7 @@ interface Event {
   description: string | null;
   location: string | null;
   event_date: string;
+  poster_url: string | null;
   created_at: string;
   user_id: string;
   club_id: string | null;
