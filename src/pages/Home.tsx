@@ -10,8 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { AnnouncementSkeleton } from "@/components/AnnouncementSkeleton";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const { announcements, loading, createAnnouncement } = useAnnouncements();
   const { profile, roles } = useProfile();
@@ -109,7 +113,7 @@ const Home = () => {
         <Button 
           variant="outline" 
           className="w-full rounded-full border-primary/30 hover:bg-primary/10"
-          onClick={() => window.location.href = "/clubs"}
+          onClick={() => navigate("/clubs")}
         >
           <Users className="w-4 h-4 mr-2" />
           See All Clubs
@@ -118,8 +122,9 @@ const Home = () => {
         {/* Announcements */}
         <div className="space-y-4">
           {loading ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="space-y-4">
+              <AnnouncementSkeleton />
+              <AnnouncementSkeleton />
             </div>
           ) : announcements.length === 0 ? (
             <div className="glass-card p-8 rounded-2xl text-center">
@@ -128,23 +133,21 @@ const Home = () => {
           ) : (
             announcements.map((announcement) => (
               <div key={announcement.id} className="glass-card rounded-2xl p-4 space-y-3 smooth-transition hover:glow-border">
-                {/* Post header */}
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold">{announcement.author_name}</h3>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(announcement.created_at).toLocaleDateString()}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{format(new Date(announcement.created_at), 'PPp')}</p>
                   </div>
                 </div>
-
-                {/* Post content */}
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-primary">{announcement.title}</h4>
-                  <p className="text-foreground leading-relaxed">{announcement.content}</p>
+                <div>
+                  <h4 className="font-bold mb-1">{announcement.title}</h4>
+                  <p className="text-sm text-muted-foreground">{announcement.content}</p>
                 </div>
+                {announcement.image_url && (
+                  <img src={announcement.image_url} alt={announcement.title} className="w-full rounded-xl object-cover max-h-64" />
+                )}
               </div>
             ))
           )}

@@ -7,6 +7,9 @@ interface Profile {
   full_name: string;
   avatar_url: string | null;
   bio: string | null;
+  year: number | null;
+  branch: string | null;
+  section: string | null;
 }
 
 interface UserRole {

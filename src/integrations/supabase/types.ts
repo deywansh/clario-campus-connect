@@ -19,6 +19,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          image_url: string | null
           title: string
           updated_at: string
           user_id: string
@@ -27,6 +28,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          image_url?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -35,6 +37,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -199,6 +202,7 @@ export type Database = {
           event_date: string
           id: string
           location: string | null
+          poster_url: string | null
           title: string
           updated_at: string
           user_id: string
@@ -210,6 +214,7 @@ export type Database = {
           event_date: string
           id?: string
           location?: string | null
+          poster_url?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -221,6 +226,7 @@ export type Database = {
           event_date?: string
           id?: string
           location?: string | null
+          poster_url?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -271,26 +277,35 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          branch: string | null
           created_at: string
           full_name: string
           id: string
+          section: string | null
           updated_at: string
+          year: number | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          branch?: string | null
           created_at?: string
           full_name: string
           id: string
+          section?: string | null
           updated_at?: string
+          year?: number | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          branch?: string | null
           created_at?: string
           full_name?: string
           id?: string
+          section?: string | null
           updated_at?: string
+          year?: number | null
         }
         Relationships: []
       }

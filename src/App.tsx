@@ -15,7 +15,16 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import AccessDenied from "./pages/AccessDenied";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import FacultyDashboard from "./pages/faculty/Dashboard";
+import FacultyCreateAnnouncement from "./pages/faculty/CreateAnnouncement";
+import FacultyCreateEvent from "./pages/faculty/CreateEvent";
+import ClubDashboard from "./pages/club/Dashboard";
+import ClubCreateAnnouncement from "./pages/club/CreateAnnouncement";
+import ClubCreateEvent from "./pages/club/CreateEvent";
+import ClubEditProfile from "./pages/club/EditProfile";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +100,79 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <ChatRoom />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/access-denied" element={<AccessDenied />} />
+          {/* Faculty Routes */}
+          <Route
+            path="/faculty/dashboard"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['faculty']}>
+                  <FacultyDashboard />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/faculty/create-announcement"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['faculty']}>
+                  <FacultyCreateAnnouncement />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/faculty/create-event"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['faculty']}>
+                  <FacultyCreateEvent />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          {/* Club Routes */}
+          <Route
+            path="/club/dashboard"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['club']}>
+                  <ClubDashboard />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/club/create-announcement"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['club']}>
+                  <ClubCreateAnnouncement />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/club/create-event"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['club']}>
+                  <ClubCreateEvent />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/club/edit-profile"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['club']}>
+                  <ClubEditProfile />
+                </RoleProtectedRoute>
               </ProtectedRoute>
             }
           />
