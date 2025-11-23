@@ -9,8 +9,11 @@ import Auth from "./pages/Auth";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Chats from "./pages/Chats";
+import ChatRoom from "./pages/ChatRoom";
 import Clubs from "./pages/Clubs";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -64,6 +67,30 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit-profile"
+            element={
+              <ProtectedRoute>
+                <EditProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chats/:chatId"
+            element={
+              <ProtectedRoute>
+                <ChatRoom />
               </ProtectedRoute>
             }
           />
