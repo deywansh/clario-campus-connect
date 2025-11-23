@@ -106,7 +106,11 @@ const Home = () => {
       {/* Main content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
         {/* See All Clubs button */}
-        <Button variant="outline" className="w-full rounded-full border-primary/30 hover:bg-primary/10">
+        <Button 
+          variant="outline" 
+          className="w-full rounded-full border-primary/30 hover:bg-primary/10"
+          onClick={() => window.location.href = "/clubs"}
+        >
           <Users className="w-4 h-4 mr-2" />
           See All Clubs
         </Button>

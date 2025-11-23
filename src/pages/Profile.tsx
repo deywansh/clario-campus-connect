@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { User, Mail, Settings, LogOut, Loader2 } from "lucide-react";
+import { User, Mail, Settings, LogOut, Loader2, Edit } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import BottomNav from "@/components/BottomNav";
 import { useNavigate } from "react-router-dom";
@@ -64,7 +64,12 @@ const Profile = () => {
             </p>
             {profile?.bio && <p className="text-sm text-muted-foreground mt-2">{profile.bio}</p>}
           </div>
-          <Button variant="outline" className="rounded-full border-primary/30 hover:bg-primary/10">
+          <Button 
+            variant="outline" 
+            className="rounded-full border-primary/30 hover:bg-primary/10"
+            onClick={() => navigate("/edit-profile")}
+          >
+            <Edit className="w-4 h-4 mr-2" />
             Edit Profile
           </Button>
         </div>

@@ -4,9 +4,11 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useChats } from "@/hooks/useChats";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 const Chats = () => {
   const { chats, loading } = useChats();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen pb-20">
@@ -57,6 +59,7 @@ const Chats = () => {
               <div
                 key={chat.id}
                 className="glass-card rounded-xl p-4 smooth-transition hover:glow-border cursor-pointer"
+                onClick={() => navigate(`/chats/${chat.id}`)}
               >
                 <div className="flex items-start gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
