@@ -18,6 +18,7 @@ interface Message {
   created_at: string;
   author_name: string;
   author_avatar: string | null;
+  image_url: string | null;
 }
 
 export const useChats = () => {
@@ -162,7 +163,7 @@ export const useMessages = (chatId: string | null) => {
 
     const { error } = await supabase
       .from("messages")
-      .insert([{ chat_id: chatId, user_id: user.id, content }]);
+      .insert([{ chat_id: chatId, user_id: user.id, content, image_url: imageUrl || null }]);
 
     if (error) {
       console.error("Error sending message:", error);
