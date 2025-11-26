@@ -10,10 +10,9 @@ interface Profile {
   year: number | null;
   branch: string | null;
   section: string | null;
-}
-
-interface UserRole {
-  role: string;
+  email: string | null;
+  role: 'student' | 'faculty' | 'club';
+  last_seen: string | null;
 }
 
 export const useProfile = () => {
@@ -30,7 +29,7 @@ export const useProfile = () => {
 
     const fetchProfile = async () => {
       try {
-        // Fetch profile
+        // Fetch profile with role
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -39,15 +38,9 @@ export const useProfile = () => {
 
         if (profileError) throw profileError;
         setProfile(profileData);
-
-        // Fetch roles
-        const { data: rolesData, error: rolesError } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", user.id);
-
-        if (rolesError) throw rolesError;
-        setRoles(rolesData.map((r: UserRole) => r.role));
+        
+        // Set roles array from profile.role for backward compatibility
+        setRoles(profileData.role ? [profileData.role] : []);
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
@@ -58,7 +51,7 @@ export const useProfile = () => {
     fetchProfile();
   }, [user]);
 
-  const updateProfile = async (updates: Partial<Profile>) => {
+  const updateProfile = async (updates: Partial<Omit<Profile, 'role'>>) => {
     if (!user) return { error: new Error("No user logged in") };
 
     const { error } = await supabase
