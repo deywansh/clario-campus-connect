@@ -320,9 +320,11 @@ export type Database = {
           bio: string | null
           branch: string | null
           created_at: string
+          email: string | null
           full_name: string
           id: string
           last_seen: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
           section: string | null
           updated_at: string
           year: number | null
@@ -332,9 +334,11 @@ export type Database = {
           bio?: string | null
           branch?: string | null
           created_at?: string
+          email?: string | null
           full_name: string
           id: string
           last_seen?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
           section?: string | null
           updated_at?: string
           year?: number | null
@@ -344,9 +348,11 @@ export type Database = {
           bio?: string | null
           branch?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string
           id?: string
           last_seen?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
           section?: string | null
           updated_at?: string
           year?: number | null

@@ -3,12 +3,16 @@ import BottomNav from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useChats } from "@/hooks/useChats";
+import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
 const Chats = () => {
   const { chats, loading } = useChats();
+  const { profile } = useProfile();
   const navigate = useNavigate();
+
+  const canCreateChat = profile?.role === 'faculty' || profile?.role === 'club';
 
   return (
     <div className="min-h-screen pb-20">
@@ -22,13 +26,16 @@ const Chats = () => {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <Button
-                size="icon"
-                className="rounded-full bg-primary hover:bg-primary/90"
-                title="Create new chat"
-              >
-                <Plus className="w-5 h-5" />
-              </Button>
+              {canCreateChat && (
+                <Button
+                  size="icon"
+                  className="rounded-full bg-primary hover:bg-primary/90"
+                  title="Create new chat"
+                  onClick={() => navigate('/create-chat')}
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
+              )}
             </div>
           </div>
         </div>

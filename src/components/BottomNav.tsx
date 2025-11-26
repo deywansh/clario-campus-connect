@@ -7,11 +7,11 @@ import { useProfile } from "@/hooks/useProfile";
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { roles } = useProfile();
+  const { profile } = useProfile();
   const showNotificationButton = ["/home", "/events", "/clubs"].includes(location.pathname);
 
-  const isFaculty = roles.includes('faculty');
-  const isClub = roles.includes('club');
+  const isFaculty = profile?.role === 'faculty';
+  const isClub = profile?.role === 'club';
 
   // Base navigation items for students
   const studentNavItems = [

@@ -9,7 +9,7 @@ interface RoleProtectedRouteProps {
 }
 
 const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRouteProps) => {
-  const { roles, loading } = useProfile();
+  const { profile, loading } = useProfile();
 
   if (loading) {
     return (
@@ -19,7 +19,7 @@ const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRouteProps)
     );
   }
 
-  const hasAccess = roles.some(role => allowedRoles.includes(role));
+  const hasAccess = profile?.role && allowedRoles.includes(profile.role);
 
   if (!hasAccess) {
     return <Navigate to="/access-denied" replace />;
