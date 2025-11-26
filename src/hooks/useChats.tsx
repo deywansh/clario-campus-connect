@@ -154,7 +154,7 @@ export const useMessages = (chatId: string | null) => {
     }
   };
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, imageUrl: string = '') => {
     if (!chatId) return { error: new Error("No chat selected") };
 
     const { data: { user } } = await supabase.auth.getUser();

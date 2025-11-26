@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          pinned: boolean | null
           title: string
           updated_at: string
           user_id: string
@@ -29,6 +30,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          pinned?: boolean | null
           title: string
           updated_at?: string
           user_id: string
@@ -38,6 +40,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          pinned?: boolean | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -75,26 +78,32 @@ export type Database = {
       }
       chats: {
         Row: {
+          admin_only: boolean | null
           created_at: string
           created_by: string
           description: string | null
           id: string
+          is_locked: boolean | null
           name: string
           updated_at: string
         }
         Insert: {
+          admin_only?: boolean | null
           created_at?: string
           created_by: string
           description?: string | null
           id?: string
+          is_locked?: boolean | null
           name: string
           updated_at?: string
         }
         Update: {
+          admin_only?: boolean | null
           created_at?: string
           created_by?: string
           description?: string | null
           id?: string
+          is_locked?: boolean | null
           name?: string
           updated_at?: string
         }
@@ -122,6 +131,35 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "club_followers_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_moderators: {
+        Row: {
+          club_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_moderators_club_id_fkey"
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
@@ -247,6 +285,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          image_url: string | null
           user_id: string
         }
         Insert: {
@@ -254,6 +293,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          image_url?: string | null
           user_id: string
         }
         Update: {
@@ -261,6 +301,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           user_id?: string
         }
         Relationships: [
@@ -281,6 +322,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          last_seen: string | null
           section: string | null
           updated_at: string
           year: number | null
@@ -292,6 +334,7 @@ export type Database = {
           created_at?: string
           full_name: string
           id: string
+          last_seen?: string | null
           section?: string | null
           updated_at?: string
           year?: number | null
@@ -303,6 +346,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          last_seen?: string | null
           section?: string | null
           updated_at?: string
           year?: number | null
@@ -342,6 +386,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "student" | "faculty" | "club"
