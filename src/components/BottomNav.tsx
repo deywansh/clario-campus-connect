@@ -17,16 +17,14 @@ const BottomNav = () => {
   const studentNavItems = [
     { icon: Home, label: "Home", path: "/home" },
     { icon: Calendar, label: "Events", path: "/events" },
-    { icon: MessageCircle, label: "Chats", path: "/chats" },
     { icon: Users, label: "Clubs", path: "/clubs" },
+    { icon: MessageCircle, label: "Chats", path: "/chats" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
   // Faculty navigation items
   const facultyNavItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/faculty/dashboard" },
-    { icon: Home, label: "Home", path: "/home" },
-    { icon: Calendar, label: "Events", path: "/events" },
     { icon: MessageCircle, label: "Chats", path: "/chats" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
@@ -34,8 +32,6 @@ const BottomNav = () => {
   // Club navigation items
   const clubNavItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/club/dashboard" },
-    { icon: Home, label: "Home", path: "/home" },
-    { icon: Calendar, label: "Events", path: "/events" },
     { icon: MessageCircle, label: "Chats", path: "/chats" },
     { icon: User, label: "Profile", path: "/profile" },
   ];

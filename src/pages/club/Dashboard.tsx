@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, FileText, Calendar, Users, Settings, UserPlus } from "lucide-react";
+import { PlusCircle, FileText, Calendar, Users, Settings, UserPlus, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useClubs } from "@/hooks/useClubs";
 import { useMemo } from "react";
+import BottomNav from "@/components/BottomNav";
 
 const ClubDashboard = () => {
   const navigate = useNavigate();
@@ -33,14 +34,14 @@ const ClubDashboard = () => {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Button
             onClick={() => navigate('/club/create-announcement')}
             className="h-auto py-6 rounded-2xl bg-primary hover:bg-primary/90"
           >
             <div className="flex flex-col items-center gap-2">
               <PlusCircle className="w-8 h-8" />
-              <span className="font-semibold">Announcement</span>
+              <span className="font-semibold text-xs">Announcement</span>
             </div>
           </Button>
           <Button
@@ -49,7 +50,17 @@ const ClubDashboard = () => {
           >
             <div className="flex flex-col items-center gap-2">
               <Calendar className="w-8 h-8" />
-              <span className="font-semibold">Event</span>
+              <span className="font-semibold text-xs">Event</span>
+            </div>
+          </Button>
+          <Button
+            onClick={() => navigate('/create-chat')}
+            variant="outline"
+            className="h-auto py-6 rounded-2xl"
+          >
+            <div className="flex flex-col items-center gap-2">
+              <MessageCircle className="w-8 h-8" />
+              <span className="font-semibold text-xs">Chat</span>
             </div>
           </Button>
           <Button
@@ -59,7 +70,7 @@ const ClubDashboard = () => {
           >
             <div className="flex flex-col items-center gap-2">
               <UserPlus className="w-8 h-8" />
-              <span className="font-semibold">Followers</span>
+              <span className="font-semibold text-xs">Followers</span>
             </div>
           </Button>
           <Button
@@ -69,7 +80,7 @@ const ClubDashboard = () => {
           >
             <div className="flex flex-col items-center gap-2">
               <Settings className="w-8 h-8" />
-              <span className="font-semibold">Settings</span>
+              <span className="font-semibold text-xs">Settings</span>
             </div>
           </Button>
         </div>
@@ -126,6 +137,8 @@ const ClubDashboard = () => {
           </Card>
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 };

@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, FileText, Calendar, TrendingUp } from "lucide-react";
+import { PlusCircle, FileText, Calendar, TrendingUp, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { useEvents } from "@/hooks/useEvents";
 import { useAuth } from "@/hooks/useAuth";
 import { useMemo } from "react";
+import BottomNav from "@/components/BottomNav";
 
 const FacultyDashboard = () => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const FacultyDashboard = () => {
 
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Button
             onClick={() => navigate('/faculty/create-announcement')}
             className="h-auto py-6 rounded-2xl bg-primary hover:bg-primary/90"
@@ -57,6 +58,16 @@ const FacultyDashboard = () => {
             <div className="flex flex-col items-center gap-2">
               <Calendar className="w-8 h-8" />
               <span className="font-semibold">Create Event</span>
+            </div>
+          </Button>
+          <Button
+            onClick={() => navigate('/create-chat')}
+            variant="outline"
+            className="h-auto py-6 rounded-2xl"
+          >
+            <div className="flex flex-col items-center gap-2">
+              <MessageCircle className="w-8 h-8" />
+              <span className="font-semibold">Create Chat</span>
             </div>
           </Button>
         </div>
@@ -116,6 +127,8 @@ const FacultyDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      <BottomNav />
     </div>
   );
 };
