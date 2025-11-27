@@ -1,15 +1,27 @@
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users, Clock } from "lucide-react";
+import { Calendar, MapPin, Clock, Grid, List } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toast } from "sonner";
 import { useEvents } from "@/hooks/useEvents";
 import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
+import CalendarView from "@/components/CalendarView";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const Events = () => {
   const { events, loading, rsvpToEvent } = useEvents();
   const { user } = useAuth();
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+
+  const filteredEvents = useMemo(() => {
+    if (!selectedDate) return events;
+    return events.filter(event => 
+      isSameDay(new Date(event.event_date), selectedDate)
+    );
+  }, [events, selectedDate]);
 
   const handleRSVP = async (eventId: string, eventTitle: string) => {
     if (!user) {
@@ -33,41 +45,72 @@ const Events = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">Events Hub</h1>
-              <p className="text-muted-foreground text-sm">Discover what's happening on campus</p>
+              <p className="text-muted-foreground text-sm">
+                {selectedDate ? `Events on ${format(selectedDate, 'PPP')}` : 'Discover what\'s happening on campus'}
+              </p>
             </div>
             <ThemeToggle />
           </div>
         </div>
       </div>
 
-      {/* Mini calendar widget placeholder */}
+      {/* View Toggle & Content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="glass-card rounded-2xl p-4 mb-6 text-center glow-border">
-          <Calendar className="w-8 h-8 mx-auto mb-2 text-primary" />
-          <p className="text-sm text-muted-foreground">Calendar view coming soon</p>
-        </div>
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "calendar")} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2 rounded-full">
+            <TabsTrigger value="list" className="rounded-full">
+              <List className="w-4 h-4 mr-2" />
+              List View
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="rounded-full">
+              <Grid className="w-4 h-4 mr-2" />
+              Calendar View
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Events grid */}
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground mt-4">Loading events...</p>
-          </div>
-        ) : events.length === 0 ? (
-          <div className="glass-card rounded-2xl p-12 text-center space-y-4">
-            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <Calendar className="w-10 h-10 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold mb-2">No events yet</h2>
-              <p className="text-muted-foreground">
-                Check back soon for upcoming campus events
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {events.map((event) => (
+          <TabsContent value="calendar" className="space-y-4">
+            <CalendarView 
+              events={events} 
+              onDateSelect={(date) => {
+                setSelectedDate(date);
+                setViewMode("list");
+              }}
+            />
+            {selectedDate && (
+              <Button
+                variant="outline"
+                onClick={() => setSelectedDate(null)}
+                className="w-full rounded-full"
+              >
+                Clear Date Filter
+              </Button>
+            )}
+          </TabsContent>
+
+          <TabsContent value="list">
+            {/* Events grid */}
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-4">Loading events...</p>
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="glass-card rounded-2xl p-12 text-center space-y-4">
+                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                  <Calendar className="w-10 h-10 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold mb-2">
+                    {selectedDate ? 'No events on this date' : 'No events yet'}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {selectedDate ? 'Try selecting a different date' : 'Check back soon for upcoming campus events'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {filteredEvents.map((event) => (
               <div key={event.id} className="glass-card rounded-2xl overflow-hidden smooth-transition hover:glow-border">
                 {/* Event image/poster */}
                 {event.poster_url ? (
@@ -115,10 +158,12 @@ const Events = () => {
                     RSVP
                   </Button>
                 </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       <BottomNav />

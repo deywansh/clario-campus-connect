@@ -25,6 +25,8 @@ import ClubDashboard from "./pages/club/Dashboard";
 import ClubCreateAnnouncement from "./pages/club/CreateAnnouncement";
 import ClubCreateEvent from "./pages/club/CreateEvent";
 import ClubEditProfile from "./pages/club/EditProfile";
+import ClubFollowers from "./pages/club/Followers";
+import CreateChat from "./pages/CreateChat";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +105,16 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/create-chat"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['faculty', 'club']}>
+                  <CreateChat />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
           <Route path="/access-denied" element={<AccessDenied />} />
           {/* Faculty Routes */}
           <Route
@@ -172,6 +184,16 @@ const App = () => (
               <ProtectedRoute>
                 <RoleProtectedRoute allowedRoles={['club']}>
                   <ClubEditProfile />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/club/followers"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['club']}>
+                  <ClubFollowers />
                 </RoleProtectedRoute>
               </ProtectedRoute>
             }

@@ -2,8 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Send, Loader2, Image as ImageIcon } from "lucide-react";
 import { useMessages } from "@/hooks/useChats";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,63 +15,99 @@ import { toast } from "sonner";
 const ChatRoom = () => {
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const { messages, loading, sendMessage } = useMessages(chatId || "");
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Auto scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Presence & typing indicators
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId || !user) return;
 
-    // Set up presence for typing indicators
     const channel = supabase.channel(`chat-${chatId}`);
-    
+
+    // Track online presence
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        const typing = Object.values(state)
-          .flat()
-          .filter((user: any) => user.typing)
-          .map((user: any) => user.name);
-        setTypingUsers(typing);
+        const online = Object.values(state).flat().map((p: any) => p.user_id);
+        setOnlineUsers(online);
+      })
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
+        const newUsers = newPresences.map((p: any) => p.user_id);
+        setOnlineUsers(prev => [...new Set([...prev, ...newUsers])]);
+      })
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        const leftUsers = leftPresences.map((p: any) => p.user_id);
+        setOnlineUsers(prev => prev.filter(id => !leftUsers.includes(id)));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ user_id: user.id, online_at: new Date().toISOString() });
+        }
+      });
+
+    // Track typing
+    const typingChannel = supabase.channel(`typing-${chatId}`);
+    typingChannel
+      .on('broadcast', { event: 'typing' }, ({ payload }) => {
+        if (payload.user_id !== user.id) {
+          setTypingUsers(prev => {
+            if (!prev.includes(payload.user_name)) {
+              return [...prev, payload.user_name];
+            }
+            return prev;
+          });
+          setTimeout(() => {
+            setTypingUsers(prev => prev.filter(name => name !== payload.user_name));
+          }, 3000);
+        }
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(typingChannel);
     };
-  }, [chatId]);
+  }, [chatId, user]);
 
-  const handleTyping = async () => {
-    if (!chatId) return;
-    
-    const { data: { user } } = await supabase.auth.getUser();
+  // Update last seen
+  useEffect(() => {
     if (!user) return;
+    const updateLastSeen = async () => {
+      await supabase.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', user.id);
+    };
+    updateLastSeen();
+    const interval = setInterval(updateLastSeen, 60000); // Every minute
+    return () => clearInterval(interval);
+  }, [user]);
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('full_name')
-      .eq('id', user.id)
-      .single();
 
-    const channel = supabase.channel(`chat-${chatId}`);
-    await channel.track({ typing: true, name: profile?.full_name || 'Someone' });
+  const handleTyping = () => {
+    if (!chatId || !user || !profile) return;
+    
+    const typingChannel = supabase.channel(`typing-${chatId}`);
+    typingChannel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { user_id: user.id, user_name: profile.full_name }
+    });
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-
-    typingTimeoutRef.current = setTimeout(async () => {
-      await channel.track({ typing: false, name: profile?.full_name || 'Someone' });
-    }, 2000);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,32 +208,66 @@ const ChatRoom = () => {
           </div>
         ) : (
           <>
-            {messages.map((message) => (
-              <div key={message.id} className="space-y-1">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-sm font-semibold text-primary">
-                    {message.author_name}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(message.created_at), 'p')}
-                  </span>
+            {messages.map((message) => {
+              const isOwnMessage = message.user_id === user?.id;
+              const isOnline = onlineUsers.includes(message.user_id);
+              return (
+                <div
+                  key={message.id}
+                  className={`flex gap-3 ${isOwnMessage ? "flex-row-reverse" : ""}`}
+                >
+                  <div className="relative">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={message.author_avatar || undefined} />
+                      <AvatarFallback>{message.author_name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {isOnline && (
+                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background" />
+                    )}
+                  </div>
+                  <div className={`flex flex-col ${isOwnMessage ? "items-end" : ""}`}>
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-xs font-medium">{message.author_name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(message.created_at), "p")}
+                      </span>
+                    </div>
+                    <div
+                      className={`px-4 py-2 rounded-2xl max-w-xs break-words ${
+                        isOwnMessage
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      {message.image_url && (
+                        <img 
+                          src={message.image_url} 
+                          alt="attachment" 
+                          className="rounded-lg mb-2 max-w-full h-auto cursor-pointer hover:opacity-90"
+                          onClick={() => window.open(message.image_url!, '_blank')}
+                        />
+                      )}
+                      {message.content && <p className="text-sm">{message.content}</p>}
+                    </div>
+                  </div>
                 </div>
-                <div className="glass-card rounded-2xl px-4 py-2 inline-block max-w-[80%]">
-                  {message.image_url ? (
-                    <img 
-                      src={message.image_url} 
-                      alt="Shared image" 
-                      className="rounded-lg max-w-full h-auto"
-                    />
-                  ) : (
-                    <p className="text-foreground">{message.content}</p>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
+
+            {/* Typing indicator */}
             {typingUsers.length > 0 && (
-              <div className="text-sm text-muted-foreground italic">
-                {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+              <div className="flex gap-3">
+                <div className="w-8 h-8" />
+                <div className="flex items-center gap-2 px-4 py-2 bg-muted rounded-2xl">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {typingUsers[0]} is typing...
+                  </span>
+                </div>
               </div>
             )}
           </>
