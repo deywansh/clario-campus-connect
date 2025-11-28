@@ -1,78 +1,84 @@
-import { Home, Calendar, MessageCircle, Users, User, Bell, LayoutDashboard } from "lucide-react";
-import { NavLink } from "@/components/NavLink";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useLocation, Link } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
+import {
+  Home,
+  CalendarDays,
+  Users,
+  MessageCircle,
+  LayoutDashboard,
+  Bell,
+  User,
+} from "lucide-react";
 
-const BottomNav = () => {
+type AppRole = "student" | "faculty" | "club";
+
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+function BottomNav() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { profile } = useProfile();
-  const showNotificationButton = ["/home", "/events", "/clubs"].includes(location.pathname);
 
-  const isFaculty = profile?.role === 'faculty';
-  const isClub = profile?.role === 'club';
+  const rawRole = (profile?.role as string | undefined) ?? "student";
+  const role = rawRole.toLowerCase() as AppRole;
 
-  // Base navigation items for students
-  const studentNavItems = [
-    { icon: Home, label: "Home", path: "/home" },
-    { icon: Calendar, label: "Events", path: "/events" },
-    { icon: Users, label: "Clubs", path: "/clubs" },
-    { icon: MessageCircle, label: "Chats", path: "/chats" },
-    { icon: User, label: "Profile", path: "/profile" },
-  ];
+  let items: NavItem[] = [];
 
-  // Faculty navigation items
-  const facultyNavItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/faculty/dashboard" },
-    { icon: MessageCircle, label: "Chats", path: "/chats" },
-    { icon: User, label: "Profile", path: "/profile" },
-  ];
-
-  // Club navigation items
-  const clubNavItems = [
-    { icon: LayoutDashboard, label: "Dashboard", path: "/club/dashboard" },
-    { icon: MessageCircle, label: "Chats", path: "/chats" },
-    { icon: User, label: "Profile", path: "/profile" },
-  ];
-
-  const navItems = isFaculty ? facultyNavItems : isClub ? clubNavItems : studentNavItems;
+  if (role === "student") {
+    items = [
+      { to: "/home", label: "Home", icon: Home },
+      { to: "/events", label: "Events", icon: CalendarDays },
+      { to: "/clubs", label: "Clubs", icon: Users },
+      { to: "/chats", label: "Chats", icon: MessageCircle },
+      { to: "/profile", label: "Profile", icon: User },
+    ];
+  } else if (role === "faculty") {
+    items = [
+      { to: "/home", label: "Home", icon: Home },
+      { to: "/faculty/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/chats", label: "Chats", icon: MessageCircle },
+      { to: "/profile", label: "Profile", icon: User },
+      { to: "/notifications", label: "Alerts", icon: Bell },
+    ];
+  } else if (role === "club") {
+    items = [
+      { to: "/home", label: "Home", icon: Home },
+      { to: "/club/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/chats", label: "Chats", icon: MessageCircle },
+      { to: "/profile", label: "Profile", icon: User },
+      { to: "/notifications", label: "Alerts", icon: Bell },
+    ];
+  }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-20 bg-card/80 backdrop-blur-lg border-t border-border/50">
-      <div className="max-w-2xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center justify-around flex-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl smooth-transition text-muted-foreground"
-                  activeClassName="text-primary bg-primary/10"
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-xs">{item.label}</span>
-                </NavLink>
-              );
-            })}
-          </div>
-          {showNotificationButton && (
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => navigate("/notifications")}
-              className="ml-2 rounded-full relative"
+    <nav className="fixed bottom-0 left-0 right-0 border-t bg-background/80 backdrop-blur-md z-40">
+      <div className="mx-auto flex max-w-md items-center justify-between px-4 py-2">
+        {items.map((item) => {
+          const isActive = location.pathname.startsWith(item.to);
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={`flex flex-1 flex-col items-center gap-1 text-xs ${
+                isActive ? "text-primary" : "text-muted-foreground"
+              }`}
             >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
-            </Button>
-          )}
-        </div>
+              <Icon
+                className={`h-5 w-5 ${
+                  isActive ? "stroke-[2.4px]" : "stroke-[1.8px]"
+                }`}
+              />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );
-};
+}
 
 export default BottomNav;
