@@ -1,31 +1,36 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { Loader2 } from "lucide-react";
+
+type AppRole = "student" | "faculty" | "club";
 
 interface RoleProtectedRouteProps {
+  allowedRoles: AppRole[];
   children: ReactNode;
-  allowedRoles: string[];
 }
 
-const RoleProtectedRoute = ({ children, allowedRoles }: RoleProtectedRouteProps) => {
-  const { profile, loading } = useProfile();
+export default function RoleProtectedRoute({
+  allowedRoles,
+  children,
+}: RoleProtectedRouteProps) {
+  const { user, loading: authLoading } = useAuth();
+  const { profile, loading: profileLoading } = useProfile();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (authLoading || profileLoading) return null;
 
-  const hasAccess = profile?.role && allowedRoles.includes(profile.role);
+  if (!user) return <Navigate to="/auth" replace />;
 
-  if (!hasAccess) {
+  const rawRole = (profile?.role as string | undefined) ?? "student";
+  const role = rawRole.toLowerCase() as AppRole;
+
+  const normalizedAllowed = allowedRoles.map((r) =>
+    r.toLowerCase()
+  ) as AppRole[];
+
+  if (!normalizedAllowed.includes(role)) {
     return <Navigate to="/access-denied" replace />;
   }
 
   return <>{children}</>;
-};
-
-export default RoleProtectedRoute;
+}
