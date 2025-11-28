@@ -32,7 +32,18 @@ export const useProfile = () => {
         // Fetch profile with role
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("*")
+          .select(`
+            id,
+            full_name,
+            email,
+            avatar_url,
+            bio,
+            role,
+            year,
+            branch,
+            section,
+            last_seen
+          `)
           .eq("id", user.id)
           .single();
 
