@@ -5,12 +5,9 @@ import {
   CalendarDays,
   Users,
   MessageCircle,
-  LayoutDashboard,
   Bell,
   User,
 } from "lucide-react";
-
-type AppRole = "student" | "faculty" | "club";
 
 interface NavItem {
   to: string;
@@ -23,7 +20,7 @@ function BottomNav() {
   const { profile } = useProfile();
 
   const rawRole = (profile?.role as string | undefined) ?? "student";
-  const role = rawRole.toLowerCase() as AppRole;
+  const role = rawRole.toLowerCase();
 
   let items: NavItem[] = [];
 
@@ -38,18 +35,18 @@ function BottomNav() {
   } else if (role === "faculty") {
     items = [
       { to: "/home", label: "Home", icon: Home },
-      { to: "/faculty/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/events", label: "Events", icon: CalendarDays },
       { to: "/chats", label: "Chats", icon: MessageCircle },
-      { to: "/profile", label: "Profile", icon: User },
       { to: "/notifications", label: "Alerts", icon: Bell },
+      { to: "/profile", label: "Profile", icon: User },
     ];
   } else if (role === "club") {
     items = [
       { to: "/home", label: "Home", icon: Home },
-      { to: "/club/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/events", label: "Events", icon: CalendarDays },
       { to: "/chats", label: "Chats", icon: MessageCircle },
-      { to: "/profile", label: "Profile", icon: User },
       { to: "/notifications", label: "Alerts", icon: Bell },
+      { to: "/profile", label: "Profile", icon: User },
     ];
   }
 
