@@ -17,20 +17,38 @@ export default function RoleProtectedRoute({
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
 
-  // Wait for auth to finish loading
-  if (authLoading) return null;
+  // Show loading spinner while auth is loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   // If not logged in, redirect to auth
   if (!user) return <Navigate to="/auth" replace />;
 
-  // Wait for profile to finish loading - don't make role decisions yet
-  if (profileLoading) return null;
+  // Show loading spinner while profile is loading
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Only after profile is loaded, check the role
-  // If profile doesn't exist or role is null, that's an error state
+  // After loading completes, if profile or role is missing, deny access
+  // Don't redirect to /auth as user is already authenticated
   if (!profile || !profile.role) {
     console.error("Profile or role not found for user:", user.id);
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/access-denied" replace />;
   }
 
   const role = profile.role.toLowerCase() as AppRole;
