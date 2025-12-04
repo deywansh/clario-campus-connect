@@ -17,16 +17,24 @@ export default function RoleProtectedRoute({
   const { user, loading: authLoading } = useAuth();
   const { profile, loading: profileLoading } = useProfile();
 
-  if (authLoading || profileLoading) return null;
+  // Wait for auth to finish loading
+  if (authLoading) return null;
 
+  // If not logged in, redirect to auth
   if (!user) return <Navigate to="/auth" replace />;
 
-  const rawRole = (profile?.role as string | undefined) ?? "student";
-  const role = rawRole.toLowerCase() as AppRole;
+  // Wait for profile to finish loading - don't make role decisions yet
+  if (profileLoading) return null;
 
-  const normalizedAllowed = allowedRoles.map((r) =>
-    r.toLowerCase()
-  ) as AppRole[];
+  // Only after profile is loaded, check the role
+  // If profile doesn't exist or role is null, that's an error state
+  if (!profile || !profile.role) {
+    console.error("Profile or role not found for user:", user.id);
+    return <Navigate to="/auth" replace />;
+  }
+
+  const role = profile.role.toLowerCase() as AppRole;
+  const normalizedAllowed = allowedRoles.map((r) => r.toLowerCase()) as AppRole[];
 
   if (!normalizedAllowed.includes(role)) {
     return <Navigate to="/access-denied" replace />;
