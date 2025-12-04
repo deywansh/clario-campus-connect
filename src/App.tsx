@@ -18,10 +18,8 @@ import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
-import FacultyDashboard from "./pages/faculty/Dashboard";
 import FacultyCreateAnnouncement from "./pages/faculty/CreateAnnouncement";
 import FacultyCreateEvent from "./pages/faculty/CreateEvent";
-import ClubDashboard from "./pages/club/Dashboard";
 import ClubCreateAnnouncement from "./pages/club/CreateAnnouncement";
 import ClubCreateEvent from "./pages/club/CreateEvent";
 import ClubEditProfile from "./pages/club/EditProfile";
@@ -118,16 +116,6 @@ const App = () => (
           <Route path="/access-denied" element={<AccessDenied />} />
           {/* Faculty Routes */}
           <Route
-            path="/faculty/dashboard"
-            element={
-              <ProtectedRoute>
-                <RoleProtectedRoute allowedRoles={['faculty']}>
-                  <FacultyDashboard />
-                </RoleProtectedRoute>
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/faculty/create-announcement"
             element={
               <ProtectedRoute>
@@ -148,16 +136,6 @@ const App = () => (
             }
           />
           {/* Club Routes */}
-          <Route
-            path="/club/dashboard"
-            element={
-              <ProtectedRoute>
-                <RoleProtectedRoute allowedRoles={['club']}>
-                  <ClubDashboard />
-                </RoleProtectedRoute>
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/club/create-announcement"
             element={
