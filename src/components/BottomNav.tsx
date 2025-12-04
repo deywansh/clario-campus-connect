@@ -17,10 +17,14 @@ interface NavItem {
 
 function BottomNav() {
   const location = useLocation();
-  const { profile } = useProfile();
+  const { profile, loading } = useProfile();
 
-  const rawRole = (profile?.role as string | undefined) ?? "student";
-  const role = rawRole.toLowerCase();
+  // Wait for profile to load before rendering role-specific nav
+  if (loading || !profile?.role) {
+    return null;
+  }
+
+  const role = profile.role.toLowerCase();
 
   let items: NavItem[] = [];
 
