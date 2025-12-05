@@ -86,19 +86,19 @@ const CreateChat = () => {
 
       if (chatError) throw chatError;
 
-      // Add creator and selected members
-      const membersToAdd = [user.id, ...selectedUsers];
+      // Add creator and selected members (avoid duplicates)
+      const uniqueMembers = [...new Set([user.id, ...selectedUsers])];
       const { error: memberError } = await supabase
         .from("chat_members")
-        .insert(membersToAdd.map((userId) => ({ chat_id: chat.id, user_id: userId })));
+        .insert(uniqueMembers.map((userId) => ({ chat_id: chat.id, user_id: userId })));
 
       if (memberError) throw memberError;
 
       toast.success("Chat created successfully");
       navigate(`/chats/${chat.id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating chat:", error);
-      toast.error("Failed to create chat");
+      toast.error(error?.message || "Failed to create chat");
     } finally {
       setLoading(false);
     }
