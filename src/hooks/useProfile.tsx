@@ -16,13 +16,21 @@ interface Profile {
 }
 
 export const useProfile = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Wait for auth to finish loading before making decisions
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
+
     if (!user) {
+      setProfile(null);
+      setRoles([]);
       setLoading(false);
       return;
     }
@@ -60,7 +68,7 @@ export const useProfile = () => {
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, authLoading]);
 
   const updateProfile = async (updates: Partial<Omit<Profile, 'role'>>) => {
     if (!user) return { error: new Error("No user logged in") };
