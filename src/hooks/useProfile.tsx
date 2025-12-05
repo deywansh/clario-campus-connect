@@ -19,22 +19,22 @@ export const useProfile = () => {
   const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     // Wait for auth to finish loading before making decisions
     if (authLoading) {
-      setLoading(true);
       return;
     }
 
     if (!user) {
       setProfile(null);
       setRoles([]);
-      setLoading(false);
+      setProfileLoading(false);
       return;
     }
 
+    setProfileLoading(true);
     const fetchProfile = async () => {
       try {
         // Fetch profile with role
@@ -63,7 +63,7 @@ export const useProfile = () => {
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
-        setLoading(false);
+        setProfileLoading(false);
       }
     };
 
@@ -86,6 +86,9 @@ export const useProfile = () => {
     setProfile((prev) => (prev ? { ...prev, ...updates } : null));
     return { error: null };
   };
+
+  // Loading is true if either auth is loading OR profile is loading
+  const loading = authLoading || profileLoading;
 
   return { profile, roles, loading, updateProfile };
 };
