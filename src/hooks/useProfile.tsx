@@ -13,6 +13,7 @@ interface Profile {
   email: string | null;
   role: 'student' | 'faculty' | 'club';
   last_seen: string | null;
+  is_temp_password: boolean | null;
 }
 
 export const useProfile = () => {
@@ -50,7 +51,8 @@ export const useProfile = () => {
             year,
             branch,
             section,
-            last_seen
+            last_seen,
+            is_temp_password
           `)
           .eq("id", user.id)
           .single();

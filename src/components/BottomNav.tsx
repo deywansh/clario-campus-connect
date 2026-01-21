@@ -7,6 +7,7 @@ import {
   MessageCircle,
   Bell,
   User,
+  Search,
 } from "lucide-react";
 
 interface NavItem {
@@ -31,25 +32,25 @@ function BottomNav() {
   if (role === "student") {
     items = [
       { to: "/home", label: "Home", icon: Home },
+      { to: "/search", label: "Search", icon: Search },
       { to: "/events", label: "Events", icon: CalendarDays },
-      { to: "/clubs", label: "Clubs", icon: Users },
       { to: "/chats", label: "Chats", icon: MessageCircle },
       { to: "/profile", label: "Profile", icon: User },
     ];
   } else if (role === "faculty") {
     items = [
       { to: "/home", label: "Home", icon: Home },
+      { to: "/search", label: "Search", icon: Search },
       { to: "/events", label: "Events", icon: CalendarDays },
       { to: "/chats", label: "Chats", icon: MessageCircle },
-      { to: "/notifications", label: "Alerts", icon: Bell },
       { to: "/profile", label: "Profile", icon: User },
     ];
   } else if (role === "club") {
     items = [
       { to: "/home", label: "Home", icon: Home },
+      { to: "/search", label: "Search", icon: Search },
       { to: "/events", label: "Events", icon: CalendarDays },
       { to: "/chats", label: "Chats", icon: MessageCircle },
-      { to: "/notifications", label: "Alerts", icon: Bell },
       { to: "/profile", label: "Profile", icon: User },
     ];
   }

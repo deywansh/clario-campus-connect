@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Onboarding from "./pages/Onboarding";
 import Auth from "./pages/Auth";
+import ChangePassword from "./pages/ChangePassword";
+import SetupProfile from "./pages/SetupProfile";
+import SelectInterests from "./pages/SelectInterests";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import Chats from "./pages/Chats";
@@ -14,10 +17,12 @@ import Clubs from "./pages/Clubs";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Notifications from "./pages/Notifications";
+import Search from "./pages/Search";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import TempPasswordGuard from "./components/TempPasswordGuard";
 import FacultyCreateAnnouncement from "./pages/faculty/CreateAnnouncement";
 import FacultyCreateEvent from "./pages/faculty/CreateEvent";
 import ClubCreateAnnouncement from "./pages/club/CreateAnnouncement";
@@ -40,10 +45,36 @@ const App = () => (
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/auth" element={<Auth />} />
           <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePassword />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/setup-profile"
+            element={
+              <ProtectedRoute>
+                <SetupProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/select-interests"
+            element={
+              <ProtectedRoute>
+                <SelectInterests />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/home"
             element={
               <ProtectedRoute>
-                <Home />
+                <TempPasswordGuard>
+                  <Home />
+                </TempPasswordGuard>
               </ProtectedRoute>
             }
           />
@@ -51,7 +82,9 @@ const App = () => (
             path="/events"
             element={
               <ProtectedRoute>
-                <Events />
+                <TempPasswordGuard>
+                  <Events />
+                </TempPasswordGuard>
               </ProtectedRoute>
             }
           />
@@ -59,7 +92,9 @@ const App = () => (
             path="/chats"
             element={
               <ProtectedRoute>
-                <Chats />
+                <TempPasswordGuard>
+                  <Chats />
+                </TempPasswordGuard>
               </ProtectedRoute>
             }
           />
@@ -67,7 +102,9 @@ const App = () => (
             path="/clubs"
             element={
               <ProtectedRoute>
-                <Clubs />
+                <TempPasswordGuard>
+                  <Clubs />
+                </TempPasswordGuard>
               </ProtectedRoute>
             }
           />
@@ -75,7 +112,9 @@ const App = () => (
             path="/profile"
             element={
               <ProtectedRoute>
-                <Profile />
+                <TempPasswordGuard>
+                  <Profile />
+                </TempPasswordGuard>
               </ProtectedRoute>
             }
           />
@@ -83,7 +122,9 @@ const App = () => (
             path="/edit-profile"
             element={
               <ProtectedRoute>
-                <EditProfile />
+                <TempPasswordGuard>
+                  <EditProfile />
+                </TempPasswordGuard>
               </ProtectedRoute>
             }
           />
@@ -91,7 +132,29 @@ const App = () => (
             path="/notifications"
             element={
               <ProtectedRoute>
-                <Notifications />
+                <TempPasswordGuard>
+                  <Notifications />
+                </TempPasswordGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <TempPasswordGuard>
+                  <Search />
+                </TempPasswordGuard>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chats/:chatId"
+            element={
+              <ProtectedRoute>
+                <TempPasswordGuard>
+                  <ChatRoom />
+                </TempPasswordGuard>
               </ProtectedRoute>
             }
           />
