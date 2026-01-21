@@ -38,7 +38,7 @@ const Auth = () => {
         password: loginPassword,
       });
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: validatedData.email,
         password: validatedData.password,
       });
@@ -50,6 +50,21 @@ const Auth = () => {
           toast.error(error.message);
         }
         return;
+      }
+
+      // Check if user has temp password
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_temp_password")
+          .eq("id", data.user.id)
+          .single();
+
+        if (profile?.is_temp_password === true) {
+          toast.success("Please set a new password");
+          navigate("/change-password");
+          return;
+        }
       }
 
       toast.success("Welcome back!");
