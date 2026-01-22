@@ -64,6 +64,15 @@ const CreateChat = () => {
     );
   };
 
+  const setUserSelected = (userId: string, selected: boolean) => {
+    setSelectedUsers((prev) => {
+      const has = prev.includes(userId);
+      if (selected && !has) return [...prev, userId];
+      if (!selected && has) return prev.filter((id) => id !== userId);
+      return prev;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -178,7 +187,11 @@ const CreateChat = () => {
                 id="adminOnly"
                 checked={formData.adminOnly}
                 onCheckedChange={(checked) =>
-                  setFormData({ ...formData, adminOnly: checked as boolean })
+                  setFormData((prev) => ({
+                    ...prev,
+                    // Radix can emit 'indeterminate' — ensure state remains a strict boolean
+                    adminOnly: checked === true,
+                  }))
                 }
               />
               <Label htmlFor="adminOnly" className="cursor-pointer text-sm">
@@ -216,7 +229,8 @@ const CreateChat = () => {
                   >
                     <Checkbox
                       checked={selectedUsers.includes(user.id)}
-                      onCheckedChange={() => toggleUser(user.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      onCheckedChange={(checked) => setUserSelected(user.id, checked === true)}
                     />
                     <Avatar className="w-10 h-10">
                       <AvatarImage src={user.avatar_url || undefined} />
