@@ -3,10 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function DemoAdmin() {
   const { toast } = useToast();
+  const { profile, loading: profileLoading } = useProfile();
   const [loading, setLoading] = useState<"seed" | "reset" | null>(null);
+
+  const role = profile?.role;
+  const isAllowed = role === "faculty" || role === "club";
 
   const seedDemoData = async () => {
     setLoading("seed");
@@ -52,6 +57,35 @@ export default function DemoAdmin() {
       setLoading(null);
     }
   };
+
+  if (profileLoading) {
+    return (
+      <main className="min-h-screen p-4">
+        <div className="mx-auto w-full max-w-md space-y-4">
+          <header className="space-y-1">
+            <h1 className="text-2xl font-semibold">Demo Admin</h1>
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          </header>
+        </div>
+      </main>
+    );
+  }
+
+  // IMPORTANT: No redirects here—always render a response so the route never appears “missing”.
+  if (!isAllowed) {
+    return (
+      <main className="min-h-screen p-4">
+        <div className="mx-auto w-full max-w-md space-y-4">
+          <header className="space-y-1">
+            <h1 className="text-2xl font-semibold">Access Denied</h1>
+            <p className="text-sm text-muted-foreground">
+              You don’t have permission to access this page.
+            </p>
+          </header>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen p-4">

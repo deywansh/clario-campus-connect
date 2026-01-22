@@ -181,11 +181,7 @@ const App = () => (
           <Route
             path="/demo-admin"
             element={
-              <ProtectedRoute>
-                <RoleProtectedRoute allowedRoles={['faculty', 'club']}>
-                  <DemoAdmin />
-                </RoleProtectedRoute>
-              </ProtectedRoute>
+              <DemoAdmin />
             }
           />
           {/* Faculty Routes */}
