@@ -12,6 +12,11 @@ interface DemoUser {
   role: "faculty" | "student" | "club";
 }
 
+type RequestBody = {
+  /** When true, resets demo users' auth password back to the configured demo password. */
+  reset_passwords?: boolean;
+};
+
 const demoUsers: DemoUser[] = [
   {
     email: "faculty@poornima.edu.in",
@@ -39,6 +44,14 @@ Deno.serve(async (req) => {
   }
 
   try {
+    let body: RequestBody = {};
+    try {
+      // Body is optional
+      body = (await req.json()) as RequestBody;
+    } catch {
+      body = {};
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -54,6 +67,7 @@ Deno.serve(async (req) => {
     for (const user of demoUsers) {
       try {
         // Check if user already exists
+        // NOTE: listUsers() is used here for simplicity given the tiny demo set.
         const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
         const existingUser = existingUsers?.users?.find((u) => u.email === user.email);
 
@@ -61,7 +75,25 @@ Deno.serve(async (req) => {
 
         if (existingUser) {
           userId = existingUser.id;
-          results.push({ email: user.email, status: "already exists, updating profile" });
+
+          // Optionally reset demo auth password back to demo password
+          if (body.reset_passwords) {
+            const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+              password: user.password,
+            });
+
+            if (updateAuthError) {
+              results.push({
+                email: user.email,
+                status: "exists, password reset failed (profile will still update)",
+                error: updateAuthError.message,
+              });
+            } else {
+              results.push({ email: user.email, status: "exists, password reset + updating profile" });
+            }
+          } else {
+            results.push({ email: user.email, status: "already exists, updating profile" });
+          }
         } else {
           // Create user in auth
           const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
