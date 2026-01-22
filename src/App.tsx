@@ -30,6 +30,7 @@ import ClubCreateEvent from "./pages/club/CreateEvent";
 import ClubEditProfile from "./pages/club/EditProfile";
 import ClubFollowers from "./pages/club/Followers";
 import CreateChat from "./pages/CreateChat";
+import DemoAdmin from "./pages/DemoAdmin";
 
 const queryClient = new QueryClient();
 
@@ -177,6 +178,16 @@ const App = () => (
             }
           />
           <Route path="/access-denied" element={<AccessDenied />} />
+          <Route
+            path="/demo-admin"
+            element={
+              <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['faculty', 'club']}>
+                  <DemoAdmin />
+                </RoleProtectedRoute>
+              </ProtectedRoute>
+            }
+          />
           {/* Faculty Routes */}
           <Route
             path="/faculty/create-announcement"
