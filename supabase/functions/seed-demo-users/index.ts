@@ -12,6 +12,31 @@ interface DemoUser {
   role: "faculty" | "student" | "club";
 }
 
+function isDemoStudentEmail(email: string) {
+  return /^student(\d+)@poornima\.edu\.in$/i.test(email);
+}
+
+// Deno/esm type inference for supabase-js can be overly strict here; keep this helper loosely typed.
+async function listAllAuthUsersByEmail(supabaseAdmin: any) {
+  // Supabase Admin API is paginated; we need to page through it to reliably find demo users.
+  const usersByEmail = new Map<string, { id: string; email: string | null }>();
+  const perPage = 1000;
+
+  for (let page = 1; page < 100; page++) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+
+    const users = data?.users ?? [];
+    for (const u of users) {
+      if (u.email) usersByEmail.set(u.email.toLowerCase(), { id: u.id, email: u.email });
+    }
+
+    if (users.length < perPage) break;
+  }
+
+  return usersByEmail;
+}
+
 type RequestBody = {
   /** When true, resets demo users' auth password back to the configured demo password. */
   reset_passwords?: boolean;
@@ -125,35 +150,54 @@ Deno.serve(async (req) => {
 
     const results: { email: string; status: string; error?: string }[] = [];
 
+    const authUsersByEmail = await listAllAuthUsersByEmail(supabaseAdmin);
+
     for (const user of demoUsers) {
       try {
-        // Check if user already exists
-        // NOTE: listUsers() is used here for simplicity given the tiny demo set.
-        const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-        const existingUser = existingUsers?.users?.find((u) => u.email === user.email);
+        const emailKey = user.email.toLowerCase();
+        const existingUser = authUsersByEmail.get(emailKey);
 
         let userId: string;
 
         if (existingUser) {
           userId = existingUser.id;
 
-          // Optionally reset demo auth password back to demo password
-          if (body.reset_passwords) {
+          // Ensure demo accounts remain usable even if someone changed the password.
+          // - For demo students: ALWAYS enforce the demo password.
+          // - For other demo users: enforce only when reset_passwords=true.
+          const shouldResetPassword = body.reset_passwords || isDemoStudentEmail(user.email);
+          if (shouldResetPassword) {
             const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
               password: user.password,
+              email_confirm: true,
+              user_metadata: { full_name: user.full_name },
             });
 
             if (updateAuthError) {
               results.push({
                 email: user.email,
-                status: "exists, password reset failed (profile will still update)",
+                status: "exists, password update failed (profile will still update)",
                 error: updateAuthError.message,
               });
             } else {
-              results.push({ email: user.email, status: "exists, password reset + updating profile" });
+              results.push({ email: user.email, status: "exists, password ensured + updating profile" });
             }
           } else {
-            results.push({ email: user.email, status: "already exists, updating profile" });
+            // Still ensure email is confirmed and name metadata is set.
+            const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+              email_confirm: true,
+              user_metadata: { full_name: user.full_name },
+            });
+
+            if (updateAuthError) {
+              results.push({
+                email: user.email,
+                status: "already exists, auth meta update failed (profile will still update)",
+                error: updateAuthError.message,
+              });
+            } else {
+              results.push({ email: user.email, status: "already exists, updating profile" });
+            }
           }
         } else {
           // Create user in auth
@@ -173,6 +217,9 @@ Deno.serve(async (req) => {
 
           userId = authData.user.id;
           results.push({ email: user.email, status: "created" });
+
+          // Keep local cache up-to-date within this run
+          authUsersByEmail.set(emailKey, { id: userId, email: user.email });
         }
 
         // Update profile with role and is_temp_password
