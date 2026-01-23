@@ -36,6 +36,67 @@ const demoUsers: DemoUser[] = [
     full_name: "Club",
     role: "club",
   },
+  // Demo students for onboarding + screen-recording
+  {
+    email: "student1@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 1",
+    role: "student",
+  },
+  {
+    email: "student2@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 2",
+    role: "student",
+  },
+  {
+    email: "student3@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 3",
+    role: "student",
+  },
+  {
+    email: "student4@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 4",
+    role: "student",
+  },
+  {
+    email: "student5@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 5",
+    role: "student",
+  },
+  {
+    email: "student6@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 6",
+    role: "student",
+  },
+  {
+    email: "student7@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 7",
+    role: "student",
+  },
+  {
+    email: "student8@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 8",
+    role: "student",
+  },
+  {
+    email: "student9@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 9",
+    role: "student",
+  },
+  {
+    email: "student10@poornima.edu.in",
+    password: "12345678",
+    full_name: "Student 10",
+    role: "student",
+  },
 ];
 
 Deno.serve(async (req) => {
