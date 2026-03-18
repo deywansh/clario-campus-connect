@@ -8,7 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 export default function DemoAdmin() {
   const { toast } = useToast();
   const { profile, loading: profileLoading } = useProfile();
-  const [loading, setLoading] = useState<"seed" | "reset" | null>(null);
+  const [loading, setLoading] = useState<"seed" | "reset" | "full_reset" | null>(null);
 
   const role = profile?.role;
   const isAllowed = role === "faculty" || role === "club";
@@ -50,6 +50,30 @@ export default function DemoAdmin() {
     } catch (e: any) {
       toast({
         title: "Reset failed",
+        description: e?.message ?? String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const fullResetDemoUsers = async () => {
+    setLoading("full_reset");
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-demo-users", {
+        body: { reset_passwords: true, full_reset: true },
+      });
+      if (error) throw error;
+
+      toast({
+        title: "Full reset complete",
+        description: "All demo users reset to first-time login state. Profiles cleared, subscriptions removed.",
+      });
+      console.log("seed-demo-users full reset result:", data);
+    } catch (e: any) {
+      toast({
+        title: "Full reset failed",
         description: e?.message ?? String(e),
         variant: "destructive",
       });
@@ -127,6 +151,27 @@ export default function DemoAdmin() {
               disabled={loading !== null}
             >
               {loading === "reset" ? "Resetting…" : "Reset Demo Users"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Full demo reset</CardTitle>
+            <CardDescription>
+              Resets <strong>all</strong> demo users to first-time login state: password → 12345678,
+              clears avatar/bio/branch/section, removes subscriptions, and forces onboarding flow
+              (change password → setup profile → select interests).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              className="w-full"
+              variant="destructive"
+              onClick={fullResetDemoUsers}
+              disabled={loading !== null}
+            >
+              {loading === "full_reset" ? "Resetting…" : "Full Demo Reset"}
             </Button>
           </CardContent>
         </Card>
