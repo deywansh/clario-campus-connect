@@ -154,6 +154,27 @@ export default function DemoAdmin() {
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Full demo reset</CardTitle>
+            <CardDescription>
+              Resets <strong>all</strong> demo users to first-time login state: password → 12345678,
+              clears avatar/bio/branch/section, removes subscriptions, and forces onboarding flow
+              (change password → setup profile → select interests).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              className="w-full"
+              variant="destructive"
+              onClick={fullResetDemoUsers}
+              disabled={loading !== null}
+            >
+              {loading === "full_reset" ? "Resetting…" : "Full Demo Reset"}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </main>
   );
