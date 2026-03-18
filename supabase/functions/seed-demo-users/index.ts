@@ -40,6 +40,8 @@ async function listAllAuthUsersByEmail(supabaseAdmin: any) {
 type RequestBody = {
   /** When true, resets demo users' auth password back to the configured demo password. */
   reset_passwords?: boolean;
+  /** When true, fully resets demo users to first-time login state (clears profile, subscriptions, sets is_temp_password). */
+  full_reset?: boolean;
 };
 
 const demoUsers: DemoUser[] = [
