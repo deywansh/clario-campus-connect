@@ -8,7 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 export default function DemoAdmin() {
   const { toast } = useToast();
   const { profile, loading: profileLoading } = useProfile();
-  const [loading, setLoading] = useState<"seed" | "reset" | null>(null);
+  const [loading, setLoading] = useState<"seed" | "reset" | "full_reset" | null>(null);
 
   const role = profile?.role;
   const isAllowed = role === "faculty" || role === "club";
