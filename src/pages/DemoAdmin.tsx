@@ -58,6 +58,30 @@ export default function DemoAdmin() {
     }
   };
 
+  const fullResetDemoUsers = async () => {
+    setLoading("full_reset");
+    try {
+      const { data, error } = await supabase.functions.invoke("seed-demo-users", {
+        body: { reset_passwords: true, full_reset: true },
+      });
+      if (error) throw error;
+
+      toast({
+        title: "Full reset complete",
+        description: "All demo users reset to first-time login state. Profiles cleared, subscriptions removed.",
+      });
+      console.log("seed-demo-users full reset result:", data);
+    } catch (e: any) {
+      toast({
+        title: "Full reset failed",
+        description: e?.message ?? String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
   if (profileLoading) {
     return (
       <main className="min-h-screen p-4">
