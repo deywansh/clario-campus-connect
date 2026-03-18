@@ -225,15 +225,28 @@ Deno.serve(async (req) => {
         }
 
         // Update profile with role and is_temp_password
+        const profilePayload: Record<string, unknown> = {
+          id: userId,
+          full_name: user.full_name,
+          email: user.email,
+          role: user.role,
+          is_temp_password: true,
+        };
+
+        // In full_reset mode, clear onboarding-related fields so users go through setup again
+        if (body.full_reset) {
+          profilePayload.avatar_url = null;
+          profilePayload.bio = null;
+          profilePayload.branch = null;
+          profilePayload.section = null;
+          profilePayload.year = null;
+          // Reset name back to generic demo name
+          profilePayload.full_name = user.full_name;
+        }
+
         const { error: profileError } = await supabaseAdmin
           .from("profiles")
-          .upsert({
-            id: userId,
-            full_name: user.full_name,
-            email: user.email,
-            role: user.role,
-            is_temp_password: true,
-          }, { onConflict: "id" });
+          .upsert(profilePayload, { onConflict: "id" });
 
         if (profileError) {
           results.push({ 
@@ -241,6 +254,18 @@ Deno.serve(async (req) => {
             status: "profile update failed", 
             error: profileError.message 
           });
+        }
+
+        // In full_reset mode, also clear user_subscriptions
+        if (body.full_reset) {
+          const { error: subError } = await supabaseAdmin
+            .from("user_subscriptions")
+            .delete()
+            .eq("user_id", userId);
+
+          if (subError) {
+            console.log(`Subscription cleanup note for ${user.email}:`, subError.message);
+          }
         }
 
         // Also add to user_roles table for proper RBAC
