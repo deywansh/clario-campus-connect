@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft, Send, Loader2, Image as ImageIcon } from "lucide-react";
-import { useMessages, useChats } from "@/hooks/useChats";
+import { useMessages } from "@/hooks/useChats";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
