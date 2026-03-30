@@ -51,19 +51,34 @@ export type Database = {
         Row: {
           chat_id: string
           id: string
+          is_archived: boolean
+          is_important: boolean
+          is_muted: boolean
           joined_at: string
+          last_read_at: string | null
+          muted_until: string | null
           user_id: string
         }
         Insert: {
           chat_id: string
           id?: string
+          is_archived?: boolean
+          is_important?: boolean
+          is_muted?: boolean
           joined_at?: string
+          last_read_at?: string | null
+          muted_until?: string | null
           user_id: string
         }
         Update: {
           chat_id?: string
           id?: string
+          is_archived?: boolean
+          is_important?: boolean
+          is_muted?: boolean
           joined_at?: string
+          last_read_at?: string | null
+          muted_until?: string | null
           user_id?: string
         }
         Relationships: [
