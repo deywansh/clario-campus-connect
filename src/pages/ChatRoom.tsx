@@ -27,10 +27,19 @@ const ChatRoom = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Auto scroll to bottom
+  // Mark chat as read & auto scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    // Mark as read
+    if (chatId && user) {
+      supabase
+        .from("chat_members")
+        .update({ last_read_at: new Date().toISOString() })
+        .eq("chat_id", chatId)
+        .eq("user_id", user.id)
+        .then();
+    }
+  }, [messages, chatId, user]);
 
   // Presence & typing indicators
   useEffect(() => {
