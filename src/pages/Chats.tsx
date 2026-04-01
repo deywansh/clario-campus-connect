@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { MessageCircle, Plus, Users, Star, BellOff, Archive, X, Clock } from "lucide-react";
+import { MessageCircle, Plus, Users, Star, BellOff, Archive, X, Clock, Trash2, LogOut } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 type FilterTab = "all" | "important" | "unread" | "groups";
 
@@ -25,7 +34,7 @@ const FILTER_TABS: { key: FilterTab; label: string }[] = [
 ];
 
 const Chats = () => {
-  const { chats, loading, toggleImportant, toggleArchive, setMute, unmute } = useChats();
+  const { chats, loading, toggleImportant, toggleArchive, setMute, unmute, deleteChat, leaveChat } = useChats();
   const { profile } = useProfile();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -34,6 +43,9 @@ const Chats = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [contextChat, setContextChat] = useState<string | null>(null);
   const [showMuteOptions, setShowMuteOptions] = useState(false);
+  const [deleteDialogChat, setDeleteDialogChat] = useState<string | null>(null);
+  const [leaveDialogChat, setLeaveDialogChat] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const canCreateChat = profile?.role === "faculty" || profile?.role === "club";
@@ -50,13 +62,17 @@ const Chats = () => {
       case "unread":
         return chat.unread_count > 0;
       case "groups":
-        return true; // all chats are groups
+        return true;
       default:
         return true;
     }
   });
 
   const contextChatData = chats.find((c) => c.id === contextChat);
+  const isCreator = (chatId: string) => {
+    const chat = chats.find((c) => c.id === chatId);
+    return chat?.created_by === user?.id;
+  };
 
   const formatTimestamp = (dateStr: string | null) => {
     if (!dateStr) return "";
@@ -88,11 +104,36 @@ const Chats = () => {
     let mutedUntil: string | null = null;
     if (duration === "8h") mutedUntil = addHours(new Date(), 8).toISOString();
     else if (duration === "1w") mutedUntil = addDays(new Date(), 7).toISOString();
-    // "forever" → null muted_until
 
     setMute(chatId, mutedUntil);
     setShowMuteOptions(false);
     setContextChat(null);
+  };
+
+  const handleDeleteChat = async () => {
+    if (!deleteDialogChat) return;
+    setActionLoading(true);
+    const { error } = await deleteChat(deleteDialogChat) || {};
+    setActionLoading(false);
+    setDeleteDialogChat(null);
+    if (error) {
+      toast.error("Failed to delete group");
+    } else {
+      toast.success("Group deleted");
+    }
+  };
+
+  const handleLeaveChat = async () => {
+    if (!leaveDialogChat) return;
+    setActionLoading(true);
+    const { error } = await leaveChat(leaveDialogChat) || {};
+    setActionLoading(false);
+    setLeaveDialogChat(null);
+    if (error) {
+      toast.error("Failed to leave group");
+    } else {
+      toast.success("You left the group");
+    }
   };
 
   const emptyMessages: Record<FilterTab, string> = {
@@ -328,6 +369,34 @@ const Chats = () => {
                 </span>
               </button>
 
+              {/* Leave Group (non-creators only) */}
+              {contextChat && !isCreator(contextChat) && (
+                <button
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent/10 transition-colors text-left"
+                  onClick={() => {
+                    setLeaveDialogChat(contextChat);
+                    setContextChat(null);
+                  }}
+                >
+                  <LogOut className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm">🚪 Leave Group</span>
+                </button>
+              )}
+
+              {/* Delete Group (creators only) */}
+              {contextChat && isCreator(contextChat) && (
+                <button
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-destructive/10 transition-colors text-left"
+                  onClick={() => {
+                    setDeleteDialogChat(contextChat);
+                    setContextChat(null);
+                  }}
+                >
+                  <Trash2 className="w-5 h-5 text-destructive" />
+                  <span className="text-sm text-destructive">🗑️ Delete Group</span>
+                </button>
+              )}
+
               {/* Cancel */}
               <button
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent/10 transition-colors text-left"
@@ -365,6 +434,46 @@ const Chats = () => {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteDialogChat} onOpenChange={(open) => !open && setDeleteDialogChat(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Group</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this group? This will permanently delete all messages and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteDialogChat(null)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteChat} disabled={actionLoading}>
+              {actionLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Leave Confirmation Dialog */}
+      <Dialog open={!!leaveDialogChat} onOpenChange={(open) => !open && setLeaveDialogChat(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Leave Group</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to leave this group? You will no longer receive messages from this chat.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setLeaveDialogChat(null)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLeaveChat} disabled={actionLoading}>
+              {actionLoading ? "Leaving..." : "Leave"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
