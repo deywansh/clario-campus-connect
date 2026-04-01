@@ -237,7 +237,38 @@ export const useChats = () => {
       .eq("user_id", user.id);
   };
 
-  return { chats, loading, createChat, refetch: fetchChats, toggleImportant, toggleArchive, setMute, unmute, markRead };
+  const deleteChat = async (chatId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: new Error("Not authenticated") };
+
+    // Delete all messages first
+    await supabase.from("messages").delete().eq("chat_id", chatId);
+    // Delete all members
+    await supabase.from("chat_members").delete().eq("chat_id", chatId);
+    // Delete the chat itself
+    const { error } = await supabase.from("chats").delete().eq("id", chatId);
+    if (error) return { error };
+
+    await fetchChats();
+    return { error: null };
+  };
+
+  const leaveChat = async (chatId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: new Error("Not authenticated") };
+
+    const { error } = await supabase
+      .from("chat_members")
+      .delete()
+      .eq("chat_id", chatId)
+      .eq("user_id", user.id);
+
+    if (error) return { error };
+    await fetchChats();
+    return { error: null };
+  };
+
+  return { chats, loading, createChat, refetch: fetchChats, toggleImportant, toggleArchive, setMute, unmute, markRead, deleteChat, leaveChat };
 };
 
 export const useMessages = (chatId: string | null) => {

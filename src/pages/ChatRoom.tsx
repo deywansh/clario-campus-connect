@@ -3,14 +3,35 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, Send, Loader2, Image as ImageIcon } from "lucide-react";
-import { useMessages } from "@/hooks/useChats";
+import { ArrowLeft, Send, Loader2, Image as ImageIcon, MoreVertical, Users, LogOut, Trash2 } from "lucide-react";
+import { useMessages, useChats } from "@/hooks/useChats";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { format } from "date-fns";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+interface ChatMember {
+  user_id: string;
+  full_name: string;
+  avatar_url: string | null;
+  role: string | null;
+}
 
 const ChatRoom = () => {
   const { chatId } = useParams<{ chatId: string }>();
@@ -18,19 +39,42 @@ const ChatRoom = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { messages, loading, sendMessage } = useMessages(chatId || "");
+  const { deleteChat, leaveChat } = useChats();
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
+  const [members, setMembers] = useState<ChatMember[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [chatCreatedBy, setChatCreatedBy] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
+  const isCreator = chatCreatedBy === user?.id;
+
+  // Fetch chat info
+  useEffect(() => {
+    if (!chatId) return;
+    supabase
+      .from("chats")
+      .select("created_by")
+      .eq("id", chatId)
+      .single()
+      .then(({ data }) => {
+        if (data) setChatCreatedBy(data.created_by);
+      });
+  }, [chatId]);
+
   // Mark chat as read & auto scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    // Mark as read
     if (chatId && user) {
       supabase
         .from("chat_members")
@@ -47,7 +91,6 @@ const ChatRoom = () => {
 
     const channel = supabase.channel(`chat-${chatId}`);
 
-    // Track online presence
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
@@ -68,7 +111,6 @@ const ChatRoom = () => {
         }
       });
 
-    // Track typing
     const typingChannel = supabase.channel(`typing-${chatId}`);
     typingChannel
       .on('broadcast', { event: 'typing' }, ({ payload }) => {
@@ -99,14 +141,13 @@ const ChatRoom = () => {
       await supabase.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', user.id);
     };
     updateLastSeen();
-    const interval = setInterval(updateLastSeen, 60000); // Every minute
+    const interval = setInterval(updateLastSeen, 60000);
     return () => clearInterval(interval);
   }, [user]);
 
-
   const handleTyping = () => {
     if (!chatId || !user || !profile) return;
-    
+
     const typingChannel = supabase.channel(`typing-${chatId}`);
     typingChannel.send({
       type: 'broadcast',
@@ -152,9 +193,7 @@ const ChatRoom = () => {
         .from('chat-images')
         .getPublicUrl(data.path);
 
-      // Send message with image
       await sendMessage('', publicUrl);
-      
       toast.success('Image sent');
     } catch (error) {
       console.error('Upload error:', error);
@@ -173,12 +212,78 @@ const ChatRoom = () => {
 
     setSending(true);
     const { error } = await sendMessage(newMessage.trim(), '');
-    
+
     if (!error) {
       setNewMessage("");
     }
-    
+
     setSending(false);
+  };
+
+  const fetchMembers = async () => {
+    if (!chatId) return;
+    setMembersLoading(true);
+    try {
+      const { data: memberRows } = await supabase
+        .from("chat_members")
+        .select("user_id")
+        .eq("chat_id", chatId);
+
+      if (memberRows && memberRows.length > 0) {
+        const userIds = memberRows.map(m => m.user_id);
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url, role")
+          .in("id", userIds);
+
+        if (profiles) {
+          setMembers(profiles.map(p => ({
+            user_id: p.id,
+            full_name: p.full_name,
+            avatar_url: p.avatar_url,
+            role: p.role,
+          })));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching members:", error);
+    } finally {
+      setMembersLoading(false);
+    }
+  };
+
+  const handleViewMembers = () => {
+    setShowMenu(false);
+    setShowMembers(true);
+    fetchMembers();
+  };
+
+  const handleDeleteChat = async () => {
+    if (!chatId) return;
+    setActionLoading(true);
+    const result = await deleteChat(chatId);
+    setActionLoading(false);
+    setDeleteDialogOpen(false);
+    if (result?.error) {
+      toast.error("Failed to delete group");
+    } else {
+      toast.success("Group deleted");
+      navigate("/chats");
+    }
+  };
+
+  const handleLeaveChat = async () => {
+    if (!chatId) return;
+    setActionLoading(true);
+    const result = await leaveChat(chatId);
+    setActionLoading(false);
+    setLeaveDialogOpen(false);
+    if (result?.error) {
+      toast.error("Failed to leave group");
+    } else {
+      toast.success("You left the group");
+      navigate("/chats");
+    }
   };
 
   return (
@@ -200,7 +305,17 @@ const ChatRoom = () => {
                 <h1 className="text-lg font-semibold">Chat Room</h1>
               </div>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowMenu(true)}
+                className="rounded-full"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -249,9 +364,9 @@ const ChatRoom = () => {
                       }`}
                     >
                       {message.image_url && (
-                        <img 
-                          src={message.image_url} 
-                          alt="attachment" 
+                        <img
+                          src={message.image_url}
+                          alt="attachment"
                           className="rounded-lg mb-2 max-w-full h-auto cursor-pointer hover:opacity-90"
                           onClick={() => window.open(message.image_url!, '_blank')}
                         />
@@ -334,6 +449,123 @@ const ChatRoom = () => {
           </form>
         </div>
       </div>
+
+      {/* Chat Menu Sheet */}
+      <Sheet open={showMenu} onOpenChange={setShowMenu}>
+        <SheetContent side="bottom" className="rounded-t-2xl">
+          <SheetHeader>
+            <SheetTitle className="text-left">Chat Options</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-1 mt-4">
+            <button
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent/10 transition-colors text-left"
+              onClick={handleViewMembers}
+            >
+              <Users className="w-5 h-5 text-muted-foreground" />
+              <span className="text-sm">👥 View Members</span>
+            </button>
+
+            {!isCreator && (
+              <button
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent/10 transition-colors text-left"
+                onClick={() => {
+                  setShowMenu(false);
+                  setLeaveDialogOpen(true);
+                }}
+              >
+                <LogOut className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm">🚪 Leave Group</span>
+              </button>
+            )}
+
+            {isCreator && (
+              <button
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-destructive/10 transition-colors text-left"
+                onClick={() => {
+                  setShowMenu(false);
+                  setDeleteDialogOpen(true);
+                }}
+              >
+                <Trash2 className="w-5 h-5 text-destructive" />
+                <span className="text-sm text-destructive">🗑️ Delete Group</span>
+              </button>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Members Sheet */}
+      <Sheet open={showMembers} onOpenChange={setShowMembers}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="text-left">Group Members</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-2 mt-4">
+            {membersLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : members.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No members found</p>
+            ) : (
+              members.map((member) => (
+                <div key={member.user_id} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-accent/5">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={member.avatar_url || undefined} />
+                    <AvatarFallback>{member.full_name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{member.full_name}</p>
+                    <p className="text-xs text-muted-foreground capitalize">
+                      {member.user_id === chatCreatedBy ? "Admin" : member.role || "Member"}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Group</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this group? This will permanently delete all messages and cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteChat} disabled={actionLoading}>
+              {actionLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Leave Confirmation Dialog */}
+      <Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Leave Group</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to leave this group? You will no longer receive messages from this chat.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setLeaveDialogOpen(false)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLeaveChat} disabled={actionLoading}>
+              {actionLoading ? "Leaving..." : "Leave"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
