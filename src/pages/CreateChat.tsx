@@ -238,7 +238,7 @@ const CreateChat = () => {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{user.full_name}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email || ""}</p>
                     </div>
                   </div>
                 ))
