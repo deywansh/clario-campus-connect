@@ -95,7 +95,9 @@ export const useChats = () => {
       }
 
       // Calculate unread counts
-      const enrichedChats: ChatWithMeta[] = memberships.map(m => {
+      const enrichedChats: ChatWithMeta[] = memberships
+        .filter(m => m.chats != null)
+        .map(m => {
         const chat = m.chats as any;
         const lastMsg = lastMessageMap[m.chat_id] || null;
         const lastReadAt = m.last_read_at;
