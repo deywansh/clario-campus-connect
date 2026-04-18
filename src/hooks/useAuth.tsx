@@ -28,11 +28,18 @@ export const useAuth = () => {
   }, []);
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Error signing out:", error);
-      return { error };
+    try {
+      // Use local scope to avoid 403 when server session is already gone
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error && error.name !== "AuthSessionMissingError") {
+        console.error("Error signing out:", error);
+      }
+    } catch (err) {
+      console.error("Sign out exception:", err);
     }
+    // Always clear local state regardless of server response
+    setSession(null);
+    setUser(null);
     return { error: null };
   };
 
