@@ -29,7 +29,6 @@ export const useAuth = () => {
 
   const signOut = async () => {
     try {
-      // Use local scope to avoid 403 when server session is already gone
       const { error } = await supabase.auth.signOut({ scope: "local" });
       if (error && error.name !== "AuthSessionMissingError") {
         console.error("Error signing out:", error);
@@ -37,9 +36,16 @@ export const useAuth = () => {
     } catch (err) {
       console.error("Sign out exception:", err);
     }
-    // Always clear local state regardless of server response
+    // Force-clear any stale Supabase auth tokens from localStorage
+    try {
+      Object.keys(localStorage)
+        .filter((k) => k.startsWith("sb-") && k.endsWith("-auth-token"))
+        .forEach((k) => localStorage.removeItem(k));
+    } catch {}
     setSession(null);
     setUser(null);
+    // Hard redirect ensures all in-memory state (hooks, queries) is reset
+    window.location.href = "/auth";
     return { error: null };
   };
 
